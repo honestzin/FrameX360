@@ -71,6 +71,7 @@ namespace FrameX360.UC
 
         string _lang = "en";
         Dictionary<string, List<PatchEntry>> _localPatches = new Dictionary<string, List<PatchEntry>>();
+        Dictionary<string, List<PatchEntry>> _builtInPatches = new Dictionary<string, List<PatchEntry>>(StringComparer.OrdinalIgnoreCase);
         Dictionary<string, string> _githubUrlByKey = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         bool _patchesLoaded = false;
         string _patchSrc = "builtin";
@@ -191,14 +192,19 @@ namespace FrameX360.UC
                 }
             }
             catch (Exception ex) { Log($"Error reading patches folder: {ex.Message}", "err"); }
+            _builtInPatches.Clear();
+            foreach (var kv in BuiltInGames.ByTitleId)
+                _builtInPatches[kv.Value.DisplayKey] = BuiltInGames.All[kv.Value.GameKey];
             _patchesLoaded = true;
             Log($"Loaded {loaded} patch files from local folder", "ok");
             foreach (var key in _localPatches.Keys.OrderBy(k => k)) cmbGame.Items.Add(key);
+            foreach (var key in _builtInPatches.Keys.OrderBy(k => k))
+                if (!cmbGame.Items.Contains(key)) cmbGame.Items.Add(key);
             string searchKey = T("search_by_name");
             if (!cmbGame.Items.Contains(searchKey)) cmbGame.Items.Add(searchKey);
             string tidCurrent = txTitleId.Text.Trim();
             if (!string.IsNullOrEmpty(tidCurrent)) AutoDetect(tidCurrent);
-            else if (cmbGame.Items.Count > 0) Log($"Total: {cmbGame.Items.Count} games (local patches)", "acc");
+            else if (cmbGame.Items.Count > 0) Log($"Total: {cmbGame.Items.Count} games (local + built-in)", "acc");
         }
 
         void AutoDetect(string tid)
@@ -209,6 +215,9 @@ namespace FrameX360.UC
                 k.StartsWith(tid + " - ", StringComparison.OrdinalIgnoreCase) ||
                 k.StartsWith(tid + "-", StringComparison.OrdinalIgnoreCase) ||
                 k.StartsWith(tid + " ", StringComparison.OrdinalIgnoreCase)).ToList();
+            if (BuiltInGames.ByTitleId.TryGetValue(tid, out var builtIn))
+                if (!matches.Contains(builtIn.DisplayKey))
+                    matches.Add(builtIn.DisplayKey);
             cmbGame.Items.Clear();
             if (matches.Count > 0)
             {
@@ -222,6 +231,8 @@ namespace FrameX360.UC
             else
             {
                 foreach (var key in _localPatches.Keys.OrderBy(k => k)) cmbGame.Items.Add(key);
+                foreach (var key in _builtInPatches.Keys.OrderBy(k => k))
+                    if (!cmbGame.Items.Contains(key)) cmbGame.Items.Add(key);
                 string searchKey = T("search_by_name");
                 if (!cmbGame.Items.Contains(searchKey)) cmbGame.Items.Add(searchKey);
                 cmbGame.SelectedIndex = -1;
@@ -301,6 +312,10 @@ namespace FrameX360.UC
             {
                 OpenPatchSearchForm();
                 return;
+            }
+            if (_builtInPatches.TryGetValue(game, out var builtin))
+            {
+                _patchSrc = "builtin"; _patchEntries = builtin; BuildCheckboxes(builtin); SetGameStatus(T("builtin") + " — " + builtin.Count + " patches", C_CYAN); return;
             }
             if (_localPatches.TryGetValue(game, out var local))
             {

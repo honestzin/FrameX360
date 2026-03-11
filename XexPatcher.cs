@@ -95,6 +95,39 @@ namespace FrameX360
                         PatternPatchValue = 0x00,
                     },
                 },
+                ["Assassin's Creed III"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS",
+                        Offset = 0x51DE1C,
+                        Find    = new byte[] { 0x81,0x7F,0x36,0xB0 },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x03 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x7F,0x36,0xB0,0x2B,0x0B,0x00,0x00,0x41,0x9A,0x00,0x34,
+                            0x2B,0x0B,0x00,0x01,0x41,0x9A,0x00,0x2C,0x2B,0x0B,0x00,0x02,
+                            0x41,0x9A,0x00,0x1C,0x39,0x6B,0xFF,0xFC,0x39,0x40,0x00,0x03,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (alternative — more smoothness, more tearing)",
+                        Offset = 0x51DE58,
+                        Find    = new byte[] { 0x39,0x60,0x00,0x01 },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x00 },
+                        ScanPattern = new byte[] { 0x39,0x60,0x00,0x01 },
+                    },
+                },
+            };
+
+        /// <summary>Title ID (8 hex) → (Display key for combo, key in All). Used so built-in games appear without .patch.toml files.</summary>
+        public static readonly Dictionary<string, (string DisplayKey, string GameKey)> ByTitleId =
+            new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["545408B8"] = ("545408B8 - GTA San Andreas", "GTA San Andreas"),
+                ["5454081A"] = ("5454081A - Bully", "Bully"),
+                ["555308AE"] = ("555308AE - Assassin's Creed III", "Assassin's Creed III"),
             };
     }
 
