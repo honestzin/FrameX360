@@ -1,5 +1,18 @@
 # FrameX360
 
+## 💙 Support / Donate
+
+If this tool helped you, consider supporting the project!
+
+| Method | Info |
+|--------|------|
+| **PayPal** | honestfps@gmail.com |
+| **Pix** | `bc72a300-3c29-452a-ba93-50b80e37aa00` |
+
+> Danilo Souza Barreto
+
+---
+
 Ferramenta Windows para aplicar patches em ficheiros **XEX** (Xbox 360). Permite descriptografar e descomprimir XEX (RGH/JTAG), aplicar patches de FPS e compatibilidade a partir da pasta local ou do repositório [xenia-canary/game-patches](https://github.com/xenia-canary/game-patches).
 
 **FrameX360** — by [@honest](https://github.com/honest)
@@ -38,7 +51,6 @@ Para **decrypt/descompressão** de XEX é necessário colocar `xextool.exe` na m
 ---
 
 ## Compilar a partir do código fonte
-
 ```bash
 git clone https://github.com/honest/FrameX360.git
 cd FrameX360
@@ -68,7 +80,6 @@ O executável é gerado em `bin\Release\net48\FrameX360.exe`.
 ## Formato dos patches
 
 Os patches locais devem ser ficheiros **TOML** com o nome no formato:
-
 ```
 <TitleID> - <Nome do jogo>.patch.toml
 ```
