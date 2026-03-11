@@ -1,13 +1,13 @@
 # FrameX360
 
 ## 💙 Apoie o Projeto
-
 Se essa ferramenta te ajudou, considere fazer uma doação!
 
 | Método | Info |
 |--------|------|
 | **PayPal** | honestfps@gmail.com |
 | **Pix** | `bc72a300-3c29-452a-ba93-50b80e37aa00` |
+| **Telegram** | [t.me/emulationzone](https://t.me/emulationzone) |
 
 > Danilo Souza Barreto
 
