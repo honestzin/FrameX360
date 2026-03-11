@@ -1,10 +1,10 @@
 # FrameX360
 
-## 💙 Support / Donate
+## 💙 Apoie o Projeto
 
-If this tool helped you, consider supporting the project!
+Se essa ferramenta te ajudou, considere fazer uma doação!
 
-| Method | Info |
+| Método | Info |
 |--------|------|
 | **PayPal** | honestfps@gmail.com |
 | **Pix** | `bc72a300-3c29-452a-ba93-50b80e37aa00` |
@@ -13,7 +13,7 @@ If this tool helped you, consider supporting the project!
 
 ---
 
-Ferramenta Windows para aplicar patches em ficheiros **XEX** (Xbox 360). Permite descriptografar e descomprimir XEX (RGH/JTAG), aplicar patches de FPS e compatibilidade a partir da pasta local ou do repositório [xenia-canary/game-patches](https://github.com/xenia-canary/game-patches).
+Ferramenta Windows para aplicar patches em arquivos **XEX** (Xbox 360). Permite descriptografar e descomprimir XEX (RGH/JTAG), aplicar patches de FPS e compatibilidade a partir da pasta local ou do repositório [xenia-canary/game-patches](https://github.com/xenia-canary/game-patches).
 
 **FrameX360** — by [@honest](https://github.com/honest)
 
@@ -21,13 +21,13 @@ Ferramenta Windows para aplicar patches em ficheiros **XEX** (Xbox 360). Permite
 
 ## Funcionalidades
 
-- **Descriptografar / descomprimir XEX** — suporte a ficheiros RGH/JTAG (requer `xextool.exe`)
+- **Descriptografar / descomprimir XEX** — suporte a arquivos RGH/JTAG (requer `xextool.exe`)
 - **Patches de FPS e compatibilidade** — aplicação de patches no formato TOML (Xenia) ou built-in
-- **Patches locais** — leitura da pasta `Patches` (ficheiros `.patch.toml`)
+- **Patches locais** — leitura da pasta `Patches` (arquivos `.patch.toml`)
 - **Busca no GitHub** — obtenção e pesquisa de patches no repositório [xenia-canary/game-patches](https://github.com/xenia-canary/game-patches) por nome de jogo
-- **Detecção por Title ID** — reconhecimento automático do jogo a partir do ficheiro XEX
+- **Detecção por Title ID** — reconhecimento automático do jogo a partir do arquivo XEX
 - **Backup automático** — criação de `.bak` antes de aplicar patches
-- **Interface bilingue** — português e inglês; idioma guardado entre sessões
+- **Interface bilíngue** — português e inglês; idioma salvo entre sessões
 - **Instalador** — setup opcional para instalação em `C:\FrameX360`
 
 ---
@@ -38,15 +38,15 @@ Ferramenta Windows para aplicar patches em ficheiros **XEX** (Xbox 360). Permite
 - [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 - [.NET SDK](https://dotnet.microsoft.com/download) (apenas para compilar a partir do código fonte)
 
-Para **decrypt/descompressão** de XEX é necessário colocar `xextool.exe` na mesma pasta do executável.
+Para **decrypt/descompressão** de XEX é necessário colocar o `xextool.exe` na mesma pasta do executável.
 
 ---
 
 ## Instalação
 
-1. Descarregue a [última release](https://github.com/honest/FrameX360/releases) ou clone o repositório.
-2. Extraia e execute `FrameX360.exe`.
-3. (Opcional) Coloque `xextool.exe` na pasta do executável para poder descriptografar/descomprimir XEX.
+1. Baixe a [última release](https://github.com/honest/FrameX360/releases) ou clone o repositório.
+2. Extraia e execute o `FrameX360.exe`.
+3. (Opcional) Coloque o `xextool.exe` na pasta do executável para poder descriptografar/descomprimir XEX.
 
 ---
 
@@ -69,9 +69,9 @@ O executável é gerado em `bin\Release\net48\FrameX360.exe`.
 
 ## Estrutura do projeto
 
-| Pasta / ficheiro | Descrição |
-|------------------|-----------|
-| `Patches\` | Ficheiros `.patch.toml` (um por jogo). O nome deve começar pelo **Title ID** (8 caracteres hex), ex: `534307F6 - Batman Arkham Asylum.patch.toml` |
+| Pasta / arquivo | Descrição |
+|-----------------|-----------|
+| `Patches\` | Arquivos `.patch.toml` (um por jogo). O nome deve começar pelo **Title ID** (8 caracteres hex), ex: `534307F6 - Batman Arkham Asylum.patch.toml` |
 | `xextool.exe` | Colocar na pasta do executável para decrypt/descompressão de XEX (opcional) |
 | `lang.txt` | Criado automaticamente na pasta do exe; contém `en` ou `pt` para o idioma da interface |
 
@@ -79,7 +79,7 @@ O executável é gerado em `bin\Release\net48\FrameX360.exe`.
 
 ## Formato dos patches
 
-Os patches locais devem ser ficheiros **TOML** com o nome no formato:
+Os patches locais devem ser arquivos **TOML** com o nome no formato:
 ```
 <TitleID> - <Nome do jogo>.patch.toml
 ```
@@ -90,13 +90,13 @@ O formato é compatível com o usado no repositório [xenia-canary/game-patches]
 
 ---
 
-## Utilização resumida
+## Como usar
 
-1. Abrir **FrameX360** e ir ao separador **FrameX**.
-2. Clicar em **Selecionar** e escolher o ficheiro `.xex` do jogo.
+1. Abrir o **FrameX360** e ir na aba **FrameX**.
+2. Clicar em **Selecionar** e escolher o arquivo `.xex` do jogo.
 3. O **Title ID** é lido automaticamente; os patches compatíveis aparecem na lista (locais e/ou do GitHub).
-4. Se não houver correspondência, usar **Buscar patches** para pesquisar no GitHub por nome do jogo.
-5. Selecionar os patches desejados e clicar em **Aplicar Patches** (é criado backup `.bak`).
+4. Se não houver correspondência, usar **Buscar patches** para pesquisar no GitHub pelo nome do jogo.
+5. Selecionar os patches desejados e clicar em **Aplicar Patches** (backup `.bak` é criado automaticamente).
 6. Para XEX encriptado/comprimido, usar **Decrypt / Decompress** (requer `xextool.exe`).
 
 ---
