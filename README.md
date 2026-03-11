@@ -44,7 +44,7 @@ Para **decrypt/descompressão** de XEX é necessário colocar o `xextool.exe` na
 
 ## Instalação
 
-1. Baixe a [última release](https://github.com/honest/FrameX360/releases) ou clone o repositório.
+1. Baixe a [última release](https://github.com/honestzin/FrameX360/releases) ou clone o repositório.
 2. Extraia e execute o `FrameX360.exe`.
 3. (Opcional) Coloque o `xextool.exe` na pasta do executável para poder descriptografar/descomprimir XEX.
 
