@@ -42,14 +42,15 @@ Para **decrypt/descompressão** de XEX é necessário colocar `xextool.exe` na m
 ```bash
 git clone https://github.com/honest/FrameX360.git
 cd FrameX360
-dotnet build XToolRGH.csproj -c Release
+dotnet build FrameX360.sln -c Release
+# ou: dotnet build FrameX360.csproj -c Release
 ```
 
 O executável é gerado em `bin\Release\net48\FrameX360.exe`.
 
 ### Executar
 
-- **Desenvolvimento:** `dotnet run --project XToolRGH.csproj`
+- **Desenvolvimento:** `dotnet run --project FrameX360.csproj`
 - **Release:** executar `FrameX360.exe` a partir de `bin\Release\net48\`
 
 ---
