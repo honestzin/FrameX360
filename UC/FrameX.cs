@@ -76,6 +76,7 @@ namespace FrameX360.UC
         bool _patchesLoaded = false;
         string _patchSrc = "builtin";
         List<PatchEntry> _patchEntries = new List<PatchEntry>();
+        readonly List<string> _comboKeys = new List<string>();
         bool _busy = false;
         readonly List<CheckBox> _checks = new List<CheckBox>();
         readonly Timer _animTimer = new Timer { Interval = 14 };
@@ -122,6 +123,20 @@ namespace FrameX360.UC
             return args.Length > 0 ? string.Format(s, args) : s;
         }
 
+        /// <summary>Extracts game name for sorting: "TitleID - Game Name" → "Game Name".</summary>
+        static string GameNameForSort(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return key;
+            int dash = key.IndexOf(" - ", StringComparison.Ordinal);
+            return dash >= 0 ? key.Substring(dash + 3).Trim() : key;
+        }
+
+        /// <summary>Display in combo: only game name (no Title ID).</summary>
+        static string DisplayName(string key)
+        {
+            return GameNameForSort(key);
+        }
+
         static string XextoolPath()
         {
             string[] candidates = {
@@ -136,7 +151,7 @@ namespace FrameX360.UC
 
         void BrowseXex()
         {
-            using (var dlg = new OpenFileDialog { Title = "Select XEX file", Filter = "XEX files (*.xex)|*.xex|All files (*.*)|*.*" })
+            using (var dlg = new OpenFileDialog { Title = "Select XEX/DLL file", Filter = "XEX files (*.xex)|*.xex|DLL files (*.dll)|*.dll|All files (*.*)|*.*" })
             {
                 if (dlg.ShowDialog() == DialogResult.OK)
                     txXex.Text = dlg.FileName;
@@ -171,7 +186,8 @@ namespace FrameX360.UC
             int loaded = 0;
             try
             {
-                foreach (string filePath in Directory.GetFiles(patchesDir, "*.patch.toml", SearchOption.TopDirectoryOnly))
+                var files = Directory.GetFiles(patchesDir, "*.patch.toml", SearchOption.TopDirectoryOnly);
+                foreach (string filePath in files)
                 {
                     try
                     {
@@ -197,11 +213,14 @@ namespace FrameX360.UC
                 _builtInPatches[kv.Value.DisplayKey] = BuiltInGames.All[kv.Value.GameKey];
             _patchesLoaded = true;
             Log($"Loaded {loaded} patch files from local folder", "ok");
-            foreach (var key in _localPatches.Keys.OrderBy(k => k)) cmbGame.Items.Add(key);
-            foreach (var key in _builtInPatches.Keys.OrderBy(k => k))
-                if (!cmbGame.Items.Contains(key)) cmbGame.Items.Add(key);
+            var builtInFirst = _builtInPatches.Keys.OrderBy(k => GameNameForSort(k), StringComparer.OrdinalIgnoreCase).ToList();
+            var localOnly = _localPatches.Keys.Where(k => !_builtInPatches.ContainsKey(k)).OrderBy(k => GameNameForSort(k), StringComparer.OrdinalIgnoreCase).ToList();
+            cmbGame.Items.Clear();
+            _comboKeys.Clear();
+            foreach (var key in builtInFirst) { cmbGame.Items.Add(DisplayName(key)); _comboKeys.Add(key); }
+            foreach (var key in localOnly) { cmbGame.Items.Add(DisplayName(key)); _comboKeys.Add(key); }
             string searchKey = T("search_by_name");
-            if (!cmbGame.Items.Contains(searchKey)) cmbGame.Items.Add(searchKey);
+            if (!_comboKeys.Contains(searchKey)) { cmbGame.Items.Add(searchKey); _comboKeys.Add(searchKey); }
             string tidCurrent = txTitleId.Text.Trim();
             if (!string.IsNullOrEmpty(tidCurrent)) AutoDetect(tidCurrent);
             else if (cmbGame.Items.Count > 0) Log($"Total: {cmbGame.Items.Count} games (local + built-in)", "acc");
@@ -218,23 +237,28 @@ namespace FrameX360.UC
             if (BuiltInGames.ByTitleId.TryGetValue(tid, out var builtIn))
                 if (!matches.Contains(builtIn.DisplayKey))
                     matches.Add(builtIn.DisplayKey);
+            // Rebuild full combo keeping all games; matches go to top, rest follow alphabetically
             cmbGame.Items.Clear();
+            _comboKeys.Clear();
+            var matchSet = new HashSet<string>(matches, StringComparer.OrdinalIgnoreCase);
+            var matchBuiltInAll = matches.Where(m => _builtInPatches.ContainsKey(m)).OrderBy(x => GameNameForSort(x), StringComparer.OrdinalIgnoreCase).ToList();
+            var matchLocalAll   = matches.Where(m => !_builtInPatches.ContainsKey(m)).OrderBy(x => GameNameForSort(x), StringComparer.OrdinalIgnoreCase).ToList();
+            var restBuiltIn     = _builtInPatches.Keys.Where(k => !matchSet.Contains(k)).OrderBy(k => GameNameForSort(k), StringComparer.OrdinalIgnoreCase).ToList();
+            var restLocal       = _localPatches.Keys.Where(k => !_builtInPatches.ContainsKey(k) && !matchSet.Contains(k)).OrderBy(k => GameNameForSort(k), StringComparer.OrdinalIgnoreCase).ToList();
+            foreach (var m in matchBuiltInAll) { cmbGame.Items.Add(DisplayName(m)); _comboKeys.Add(m); }
+            foreach (var m in matchLocalAll)   { cmbGame.Items.Add(DisplayName(m)); _comboKeys.Add(m); }
+            foreach (var k in restBuiltIn)     { cmbGame.Items.Add(DisplayName(k)); _comboKeys.Add(k); }
+            foreach (var k in restLocal)       { cmbGame.Items.Add(DisplayName(k)); _comboKeys.Add(k); }
+            string searchKey2 = T("search_by_name");
+            if (!_comboKeys.Contains(searchKey2)) { cmbGame.Items.Add(searchKey2); _comboKeys.Add(searchKey2); }
             if (matches.Count > 0)
             {
-                foreach (var m in matches.OrderBy(x => x)) cmbGame.Items.Add(m);
-                string searchKey = T("search_by_name");
-                if (!cmbGame.Items.Contains(searchKey)) cmbGame.Items.Add(searchKey);
                 cmbGame.SelectedIndex = 0;
                 SetGameStatus(T("detected", matches.Count), C_OK);
                 OnGameSelected();
             }
             else
             {
-                foreach (var key in _localPatches.Keys.OrderBy(k => k)) cmbGame.Items.Add(key);
-                foreach (var key in _builtInPatches.Keys.OrderBy(k => k))
-                    if (!cmbGame.Items.Contains(key)) cmbGame.Items.Add(key);
-                string searchKey = T("search_by_name");
-                if (!cmbGame.Items.Contains(searchKey)) cmbGame.Items.Add(searchKey);
                 cmbGame.SelectedIndex = -1;
                 BuildCheckboxes(new List<PatchEntry>());
                 SetGameStatus(T("no_match"), C_WARN);
@@ -268,19 +292,24 @@ namespace FrameX360.UC
                 return;
             }
             var entry = dlg.SelectedEntry;
-            string display = $"{entry.TitleId} - {entry.Name} (GitHub)";
-            if (!_githubUrlByKey.ContainsKey(display))
-                _githubUrlByKey[display] = entry.DownloadUrl;
-            if (!cmbGame.Items.Contains(display))
-                cmbGame.Items.Add(display);
-            cmbGame.SelectedItem = display;
+            string key = $"{entry.TitleId} - {entry.Name} (GitHub)";
+            if (!_githubUrlByKey.ContainsKey(key))
+                _githubUrlByKey[key] = entry.DownloadUrl;
+            int idx = _comboKeys.IndexOf(key);
+            if (idx < 0)
+            {
+                cmbGame.Items.Add(DisplayName(key));
+                _comboKeys.Add(key);
+                idx = _comboKeys.Count - 1;
+            }
+            cmbGame.SelectedIndex = idx;
             _patchSrc = "github";
             _ = LoadGitHubPatchesForSelectedAsync();
         }
 
         async System.Threading.Tasks.Task LoadGitHubPatchesForSelectedAsync()
         {
-            string? game = cmbGame.SelectedItem?.ToString()?.Trim();
+            string? game = cmbGame.SelectedIndex >= 0 && cmbGame.SelectedIndex < _comboKeys.Count ? _comboKeys[cmbGame.SelectedIndex] : null;
             if (string.IsNullOrEmpty(game)) return;
             if (!_githubUrlByKey.TryGetValue(game, out var url)) return;
             SetGameStatus(T("gh_load"), C_MUTED);
@@ -301,7 +330,9 @@ namespace FrameX360.UC
 
         async void OnGameSelected()
         {
-            string game = cmbGame.Text.Trim();
+            string game = cmbGame.SelectedIndex >= 0 && cmbGame.SelectedIndex < _comboKeys.Count
+                ? _comboKeys[cmbGame.SelectedIndex]
+                : "";
             if (string.IsNullOrEmpty(game)) return;
             await OnGameSelectedAsync(game);
         }
@@ -414,7 +445,10 @@ namespace FrameX360.UC
                 return true;
             });
             SetBusy(false, progPatch, ok);
-            if (ok) MessageBox.Show(T("p_ok", selected.Count, selected.Count), "FrameX360", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (ok)
+                MessageBox.Show(T("p_ok", selected.Count, selected.Count), "FrameX360", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show(T("no_apply"), "FrameX360", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         void RunDiagnose()

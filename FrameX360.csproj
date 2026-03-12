@@ -72,7 +72,7 @@
 
   <Target Name="CopyPatches" AfterTargets="Build">
     <ItemGroup>
-      <PatchFiles Include="$(ProjectDir)Patches\**\*.toml" />
+      <PatchFiles Include="$(ProjectDir)Patches\**\*.patch.toml" />
     </ItemGroup>
     <Copy SourceFiles="@(PatchFiles)" DestinationFolder="$(OutDir)patches\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>

@@ -22,6 +22,7 @@ namespace FrameX360
         public Form1()
         {
             InitializeComponent();
+            FormClosing += Form1_FormClosing;
             SetDoubleBuffered(this);
             SetDoubleBuffered(pnlContent);
             _tabPanels = new Control[] { home1, frameX1, about1, credits1 };
@@ -148,6 +149,12 @@ namespace FrameX360
         private void guna2ControlBox1_Click(object sender, EventArgs e)
         {
             Environment.Exit(0);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+                Environment.Exit(0);
         }
     }
 }

@@ -25,6 +25,8 @@ namespace FrameX360
         public byte[]  PatternFind       { get; set; } = new byte[0];
         public int     PatternPatchIndex { get; set; } = 7;
         public byte    PatternPatchValue { get; set; } = 0x00;
+        /// <summary>When set, try this virtual address (e.g. 0x82518E1C) to get file offset for built-in patch.</summary>
+        public long    VirtualAddress    { get; set; }
         // TOML ops: "be8", "be16", "be32", "be64", "f32", "f64" → list of ops
         public Dictionary<string, List<TomlOp>> Ops { get; set; } = new Dictionary<string, List<TomlOp>>();
     }
@@ -95,12 +97,50 @@ namespace FrameX360
                         PatternPatchValue = 0x00,
                     },
                 },
+                // Assassin's Creed 1 — default.xex. Tutorial: 15266C (8214F66C absolute), change 81 5F 35 0C → 39 40 00 00.
+                ["Assassin's Creed"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS",
+                        Offset = 0x15266C,
+                        VirtualAddress = 0x8214F66C,
+                        Find    = new byte[] { 0x81,0x5F,0x35,0x0C },
+                        Replace = new byte[] { 0x39,0x40,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x35,0x0C,0x28,0x0A,0x00,0x00,0x41,0x82,0x00,0x40,
+                            0x2B,0x0A,0x00,0x01,0x41,0x9A,0x00,0x38,
+                        },
+                    },
+                },
+                // Assassin's Creed II — default.xex. Tutorial: 3E2290 (823de290 absolute), 81 7f 35 ec → 39 60 00 03.
+                ["Assassin's Creed II"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS",
+                        Offset = 0x3E2290,
+                        VirtualAddress = 0x823de290,
+                        Find    = new byte[] { 0x81,0x7F,0x35,0xEC },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x03 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x7F,0x35,0xEC,0x2B,0x0B,0x00,0x00,0x41,0x9A,0x00,0x34,
+                            0x2B,0x0B,0x00,0x01,0x41,0x9A,0x00,0x2C,0x2B,0x0B,0x00,0x02,
+                            0x41,0x9A,0x00,0x1C,0x39,0x6B,0xFF,0xFC,0x39,0x40,0x00,0x03,
+                            0x31,0x6B,0xFF,0xFF,0x7D,0x6B,0x59,0x10,0x7D,0x6B,0x50,0x38,
+                        },
+                    },
+                },
+                // Assassin's Creed III — scimitar_final.xex (decrypt first). Tutorial: 51DE1C/82518e1c and 51DE58/82518e58.
                 ["Assassin's Creed III"] = new List<PatchEntry>
                 {
                     new PatchEntry
                     {
                         Name   = "Unlock FPS",
                         Offset = 0x51DE1C,
+                        VirtualAddress = 0x82518E1C,
                         Find    = new byte[] { 0x81,0x7F,0x36,0xB0 },
                         Replace = new byte[] { 0x39,0x60,0x00,0x03 },
                         ScanPattern = new byte[]
@@ -114,9 +154,209 @@ namespace FrameX360
                     {
                         Name   = "Unlock FPS (alternative — more smoothness, more tearing)",
                         Offset = 0x51DE58,
+                        VirtualAddress = 0x82518E58,
                         Find    = new byte[] { 0x39,0x60,0x00,0x01 },
                         Replace = new byte[] { 0x39,0x60,0x00,0x00 },
-                        ScanPattern = new byte[] { 0x39,0x60,0x00,0x01 },
+                        ScanPattern = new byte[]
+                        {
+                            0x39,0x60,0x00,0x01,0x81,0x5F,0x2F,0xFC,0x55,0x6B,0x40,0x2E,
+                            0x80,0x9F,0x00,0x30,0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,
+                            0x7D,0x4B,0x5B,0x78,0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,
+                            0x40,0x99,0x00,0x10,
+                        },
+                    },
+                },
+                // Batman: Arkham Asylum — default.xex. Tutorial: A2AB18 (82a2eb18), 81 5f 2e 54 55 6b 40 2e → 39 60 00 01 55 60 45 FF.
+                ["Batman Arkham Asylum Alternative"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS",
+                        Offset = 0xA2AB18,
+                        VirtualAddress = 0x82a2eb18,
+                        Find    = new byte[] { 0x81,0x5F,0x2E,0x54,0x55,0x6B,0x40,0x2E },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x01,0x55,0x60,0x45,0xFF },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x2E,0x54,0x55,0x6B,0x40,0x2E,0x80,0x9F,0x00,0x30,
+                            0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,0x7D,0x4B,0x5B,0x78,
+                            0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,0x40,0x99,0x00,0x10,
+                            0x7F,0xE3,0xFB,0x78,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (alternative — TU / outras regiões)",
+                        Find   = new byte[] { 0x81,0x5F,0x2E,0x54,0x55,0x6B,0x40,0x2E },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x01,0x55,0x60,0x45,0xFF },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x2E,0x54,0x55,0x6B,0x40,0x2E,0x80,0x9F,0x00,0x30,
+                            0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,0x7D,0x4B,0x5B,0x78,
+                            0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,0x40,0x99,0x00,0x10,
+                            0x7F,0xE3,0xFB,0x78,
+                        },
+                    },
+                },
+                // Left 4 Dead — engine_360.dll e shaderapidx9_360.dll (descriptografar com xextool). VSync off = 2 patches.
+                ["Left 4 Dead"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (engine_360.dll)",
+                        Offset = 0x17AA4C,
+                        VirtualAddress = 0x86500a4c,
+                        Find    = new byte[] { 0x4B,0xFF,0xFD,0x3D },
+                        Replace = new byte[] { 0x60,0x00,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x4B,0xFF,0xFD,0x3D,0x54,0x6B,0x06,0x3E,0x2B,0x0B,0x00,0x00,
+                            0x40,0x9A,0x00,0x20,0xC0,0x1C,0x00,0x28,0xED,0xA0,0xF8,0x2A,
+                            0xD1,0xBC,0x00,0x28,0x38,0x21,0x00,0x90,0xCB,0xC1,0xFF,0xC8,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (shaderapidx9_360.dll)",
+                        Offset = 0x7573C,
+                        VirtualAddress = 0x84cf373c,
+                        Find    = new byte[] { 0x81,0x5F,0x2E,0x4C },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x2E,0x4C,0x55,0x6B,0x40,0x2E,0x80,0x9F,0x00,0x30,
+                            0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,0x7D,0x4B,0x5B,0x78,
+                            0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,0x40,0x99,0x00,0x10,
+                        },
+                    },
+                },
+                // Left 4 Dead 2 — engine_360.dll e shaderapidx9_360.dll (descriptografar com xextool). VSync off = 2 ficheiros.
+                ["Left 4 Dead 2"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (engine_360.dll)",
+                        Offset = 0x17F988,
+                        VirtualAddress = 0x86c84988,
+                        Find    = new byte[] { 0x4B,0xFF,0xFD,0x19 },
+                        Replace = new byte[] { 0x60,0x00,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x4B,0xFF,0xFD,0x19,0x54,0x6B,0x06,0x3E,0x2B,0x0B,0x00,0x00,
+                            0x40,0x9A,0x00,0x20,0xC0,0x1C,0x00,0x28,0xED,0xA0,0xF8,0x2A,
+                            0xD1,0xBC,0x00,0x28,0x38,0x21,0x00,0x90,0xCB,0xC1,0xFF,0xC8,
+                            0xCB,0xE1,0xFF,0xD0,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (shaderapidx9_360.dll — VSync off)",
+                        Offset = 0x993E0,
+                        VirtualAddress = 0x852973e0,
+                        Find    = new byte[] { 0x81,0x5F,0x2E,0xFC },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x2E,0xFC,0x55,0x6B,0x40,0x2E,0x80,0x9F,0x00,0x30,
+                            0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,0x7D,0x4B,0x5B,0x78,
+                            0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,0x40,0x99,0x00,0x10,
+                            0x7F,0xE3,0xFB,0x78,0x4B,0xFF,0xB3,0x31,0x7C,0x64,0x1B,0x78,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (shaderapidx9_360.dll — VSync on, sem tearing, drops 30 fps)",
+                        Offset = 0x993E0,
+                        VirtualAddress = 0x852973e0,
+                        Find    = new byte[] { 0x81,0x5F,0x2E,0xFC },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x01 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x5F,0x2E,0xFC,0x55,0x6B,0x40,0x2E,0x80,0x9F,0x00,0x30,
+                            0x55,0x4A,0x4E,0x7E,0x81,0x3F,0x00,0x38,0x7D,0x4B,0x5B,0x78,
+                            0x7F,0x04,0x48,0x40,0x7D,0x7E,0xEB,0x78,0x40,0x99,0x00,0x10,
+                            0x7F,0xE3,0xFB,0x78,0x4B,0xFF,0xB3,0x31,0x7C,0x64,0x1B,0x78,
+                        },
+                    },
+                },
+                // Tomb Raider Underworld — default.xex. 4E6878 (824e3878), 39 60 00 02 → 39 60 00 00.
+                ["Tomb Raider Underworld"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS",
+                        Offset = 0x4E6878,
+                        VirtualAddress = 0x824e3878,
+                        Find    = new byte[] { 0x39,0x60,0x00,0x02 },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0x39,0x60,0x00,0x02,0x48,0x00,0x00,0x10,0x39,0x60,0x00,0x01,
+                            0x48,0x00,0x00,0x08,0x81,0x61,0x00,0x50,0x81,0x5F,0x2E,0x4C,
+                        },
+                    },
+                },
+                // Dead Island Riptide — default.xex. Adicionado como "Alternative". Patches opcionais (73DA98, 73DB30) só em algumas fases.
+                ["Dead Island Riptide Alternative"] = new List<PatchEntry>
+                {
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (81 7f 36 b0)",
+                        Offset = 0x73DA5C,
+                        VirtualAddress = 0x82741a5c,
+                        Find    = new byte[] { 0x81,0x7F,0x36,0xB0 },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x01 },
+                        ScanPattern = new byte[]
+                        {
+                            0x81,0x7F,0x36,0xB0,0x2B,0x0B,0x00,0x00,0x41,0x9A,0x00,0x34,
+                            0x2B,0x0B,0x00,0x01,0x41,0x9A,0x00,0x2C,0x2B,0x0B,0x00,0x02,
+                            0x41,0x9A,0x00,0x1C,0x39,0x6B,0xFF,0xFC,0x39,0x40,0x00,0x03,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (c0 23 04 d0)",
+                        Offset = 0x5143F8,
+                        VirtualAddress = 0x825183F8,
+                        Find    = new byte[] { 0xC0,0x23,0x04,0xD0 },
+                        Replace = new byte[] { 0x60,0x00,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0xC0,0x23,0x04,0xD0,0x4E,0x80,0x00,0x20,0xC0,0x23,0x04,0xCC,
+                            0x4E,0x80,0x00,0x20,0x88,0x63,0x04,0xE0,0x4E,0x80,0x00,0x20,
+                            0x89,0x63,0x04,0xE0,0x2B,0x0B,0x00,0x00,0x41,0x9A,0x00,0x14,
+                            0x89,0x63,0x04,0xE2,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS (c0 23 04 cc)",
+                        Offset = 0x5143F8,
+                        VirtualAddress = 0x825183F8,
+                        Find    = new byte[] { 0xC0,0x23,0x04,0xCC },
+                        Replace = new byte[] { 0x60,0x00,0x00,0x00 },
+                        ScanPattern = new byte[]
+                        {
+                            0xC0,0x23,0x04,0xCC,0x4E,0x80,0x00,0x20,0x88,0x63,0x04,0xE0,
+                            0x4E,0x80,0x00,0x20,0x89,0x63,0x04,0xE0,0x2B,0x0B,0x00,0x00,
+                            0x41,0x9A,0x00,0x14,0x89,0x63,0x04,0xE2,
+                        },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS opcional (73DA98 — só algumas fases, pior em open world)",
+                        Offset = 0x73DA98,
+                        VirtualAddress = 0x82741a98,
+                        Find    = new byte[] { 0x39,0x60,0x00,0x01 },
+                        Replace = new byte[] { 0x39,0x60,0x00,0x00 },
+                    },
+                    new PatchEntry
+                    {
+                        Name   = "Unlock FPS opcional (73DB30 — só algumas fases, pior em open world)",
+                        Offset = 0x73DB30,
+                        VirtualAddress = 0x82741b30,
+                        Find    = new byte[] { 0x39,0x6B,0x00,0x04 },
+                        Replace = new byte[] { 0x39,0x6B,0x00,0x00 },
                     },
                 },
             };
@@ -125,9 +365,16 @@ namespace FrameX360
         public static readonly Dictionary<string, (string DisplayKey, string GameKey)> ByTitleId =
             new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase)
             {
-                ["545408B8"] = ("545408B8 - GTA San Andreas", "GTA San Andreas"),
-                ["5454081A"] = ("5454081A - Bully", "Bully"),
+                ["555307D4"] = ("555307D4 - Assassin's Creed", "Assassin's Creed"),
+                ["5553083B"] = ("5553083B - Assassin's Creed II", "Assassin's Creed II"),
                 ["555308AE"] = ("555308AE - Assassin's Creed III", "Assassin's Creed III"),
+                ["5454081A"] = ("5454081A - Bully", "Bully"),
+                ["545408B8"] = ("545408B8 - GTA San Andreas", "GTA San Andreas"),
+                ["534307F6"] = ("534307F6 - Batman Arkham Asylum Alternative", "Batman Arkham Asylum Alternative"),
+                ["45410830"] = ("45410830 - Left 4 Dead", "Left 4 Dead"),
+                ["454108D4"] = ("454108D4 - Left 4 Dead 2", "Left 4 Dead 2"),
+                ["534307EC"] = ("534307EC - Tomb Raider Underworld", "Tomb Raider Underworld"),
+                ["4B4D07F2"] = ("4B4D07F2 - Dead Island Riptide Alternative", "Dead Island Riptide Alternative"),
             };
     }
 
@@ -571,7 +818,7 @@ namespace FrameX360
 
             // GTA-style
             byte[] find = p.Find; byte[] repl = p.Replace;
-            if (p.Offset + find.Length <= data.Length)
+            if (p.Offset > 0 && p.Offset + find.Length <= data.Length)
             {
                 var actual = XexUtils.Slice(data, p.Offset, find.Length);
                 if (BytesEq(actual, repl)) { log($"  [INFO] {p.Name}: already applied", "dim"); return true; }
@@ -582,6 +829,22 @@ namespace FrameX360
                     return true;
                 }
                 log($"  [WARN] bytes mismatch at 0x{p.Offset:X} — scanning...", "warn");
+            }
+
+            if (p.VirtualAddress != 0)
+            {
+                int fo = XexUtils.VirtToFileOffset(data, p.VirtualAddress);
+                if (fo >= 0 && fo + find.Length <= data.Length)
+                {
+                    var actual = XexUtils.Slice(data, fo, find.Length);
+                    if (BytesEq(actual, repl)) { log($"  [INFO] {p.Name}: already applied (VA)", "dim"); return true; }
+                    if (BytesEq(actual, find))
+                    {
+                        Array.Copy(repl, 0, data, fo, repl.Length);
+                        log($"  [OK] {p.Name}: 0x{fo:X} patched (VA 0x{p.VirtualAddress:X})", "ok");
+                        return true;
+                    }
+                }
             }
 
             if (p.ScanPattern.Length > 0)
@@ -598,11 +861,20 @@ namespace FrameX360
                         return true;
                     }
                 }
-                log($"  [ERROR] {p.Name}: sequence not found — XEX encrypted?", "err");
-                return false;
             }
 
-            log($"  [ERROR] {p.Name}: no match", "err");
+            // Last resort: search for Find bytes anywhere in the file (e.g. default.xex with different layout)
+            int anyIdx = XexUtils.IndexOf(data, find);
+            if (anyIdx >= 0)
+            {
+                var actual = XexUtils.Slice(data, anyIdx, find.Length);
+                if (BytesEq(actual, repl)) { log($"  [INFO] {p.Name}: already applied (anywhere)", "dim"); return true; }
+                Array.Copy(repl, 0, data, anyIdx, repl.Length);
+                log($"  [OK] {p.Name}: 0x{anyIdx:X} patched (found in file)", "ok");
+                return true;
+            }
+
+            log($"  [ERROR] {p.Name}: sequence not found in file", "err");
             return false;
         }
 
